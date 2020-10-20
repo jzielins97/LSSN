@@ -2,4 +2,7 @@
 Repositoty for the laboratory of neural networks
 
 ## 1
-Modele sieci neurownowej
+Wprowadzenie + podstawy Pythona
+
+## 2
+Modele neuronów 
