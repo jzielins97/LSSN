@@ -1,5 +1,5 @@
 # LSSN
-Repositoty for the laboratory of neural networks
+Repozytorium do przedmiotu "laboratorium sztucznych sieci neuronowych"
 
 ### 1
 Wprowadzenie + podstawy Pythona
