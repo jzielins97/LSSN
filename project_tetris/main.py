@@ -1,5 +1,12 @@
+# https://www.askforgametask.com/tutorial/machine-learning/ai-plays-tetris-with-cnn/
+# https://www.techwithtim.net/tutorials/game-development-with-python/tetris-pygame/tutorial-1/
+# https://www.youtube.com/watch?v=wQWWzBHUJWM&ab_channel=TechWithTim
+
 import pygame
 import random
+import neat
+import numpy
+import pickle
 
 pygame.font.init()
 
@@ -15,109 +22,126 @@ top_left_y = s_height - play_height
 
 # SHAPE FORMATS
 
-S = [['.....',
-      '.....',
-      '..00.',
-      '.00..',
-      '.....'],
-     ['.....',
-      '..0..',
-      '..00.',
-      '...0.',
-      '.....']]
+S_ = [[0, 0, 0, 0,
+       0, 1, 1, 0,
+       1, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 0, 0,
+       0, 1, 1, 0,
+       1, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 0, 0]]
 
-Z = [['.....',
-      '.....',
-      '.00..',
-      '..00.',
-      '.....'],
-     ['.....',
-      '..0..',
-      '.00..',
-      '.0...',
-      '.....']]
+Z_ = [[0, 0, 0, 0,
+       1, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 1, 0,
+       0, 1, 1, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 0, 0, 0,
+       1, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 1, 0,
+       0, 1, 1, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0]]
 
-I = [['..0..',
-      '..0..',
-      '..0..',
-      '..0..',
-      '.....'],
-     ['.....',
-      '0000.',
-      '.....',
-      '.....',
-      '.....']]
+I_ = [[0, 0, 0, 0,
+       1, 1, 1, 1,
+       0, 0, 0, 0,
+       0, 0, 0, 0],
+      [0, 0, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 1, 0],
+      [0, 0, 0, 0,
+       1, 1, 1, 1,
+       0, 0, 0, 0,
+       0, 0, 0, 0],
+      [0, 0, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 1, 0]]
 
-O = [['.....',
-      '.....',
-      '.00..',
-      '.00..',
-      '.....']]
+O_ = [[0, 0, 0, 0,
+       0, 1, 1, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 0, 0,
+       0, 1, 1, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 0, 0,
+       0, 1, 1, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0],
+      [0, 0, 0, 0,
+       0, 1, 1, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0]]
 
-J = [['.....',
-      '.0...',
-      '.000.',
-      '.....',
-      '.....'],
-     ['.....',
-      '..00.',
-      '..0..',
-      '..0..',
-      '.....'],
-     ['.....',
-      '.....',
-      '.000.',
-      '...0.',
-      '.....'],
-     ['.....',
-      '..0..',
-      '..0..',
-      '.00..',
-      '.....']]
+J_ = [[0, 0, 0, 0,
+       1, 1, 1, 0,
+       0, 0, 1, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       0, 1, 0, 0,
+       1, 1, 0, 0,
+       0, 0, 0, 0],
+      [1, 0, 0, 0,
+       1, 1, 1, 0,
+       0, 0, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 1, 0,
+       0, 1, 0, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0]]
 
-L = [['.....',
-      '...0.',
-      '.000.',
-      '.....',
-      '.....'],
-     ['.....',
-      '..0..',
-      '..0..',
-      '..00.',
-      '.....'],
-     ['.....',
-      '.....',
-      '.000.',
-      '.0...',
-      '.....'],
-     ['.....',
-      '.00..',
-      '..0..',
-      '..0..',
-      '.....']]
+L_ = [[0, 0, 0, 0,
+       1, 1, 1, 0,
+       1, 0, 0, 0,
+       0, 0, 0, 0],
+      [1, 1, 0, 0,
+       0, 1, 0, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 0, 1, 0,
+       1, 1, 1, 0,
+       0, 0, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       0, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 0, 0, 0]]
 
-T = [['.....',
-      '..0..',
-      '.000.',
-      '.....',
-      '.....'],
-     ['.....',
-      '..0..',
-      '..00.',
-      '..0..',
-      '.....'],
-     ['.....',
-      '.....',
-      '.000.',
-      '..0..',
-      '.....'],
-     ['.....',
-      '..0..',
-      '.00..',
-      '..0..',
-      '.....']]
+T_ = [[0, 0, 0, 0,
+       1, 1, 1, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       1, 1, 0, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       1, 1, 1, 0,
+       0, 0, 0, 0,
+       0, 0, 0, 0],
+      [0, 1, 0, 0,
+       0, 1, 1, 0,
+       0, 1, 0, 0,
+       0, 0, 0, 0]]
 
-shapes = [S, Z, I, O, J, L, T]
+shapes = [S_, Z_, I_, O_, J_, L_, T_]
 shape_colors = [(0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 165, 0), (0, 0, 255), (128, 0, 128)]
 
 
@@ -147,16 +171,16 @@ def create_grid(locked_pos={}):  # *
 
 def convert_shape_format(shape):
     positions = []
-    format = shape.shape[shape.rotation % len(shape.shape)]
 
-    for i, line in enumerate(format):
-        row = list(line)
-        for j, column in enumerate(row):
-            if column == '0':
-                positions.append((shape.x + j, shape.y + i))
+    for y in range(4):
+        for x in range(4):
+            i = y * 4 + x
 
-    for i, pos in enumerate(positions):
-        positions[i] = (pos[0] - 2, pos[1] - 4)
+            if shape.shape[shape.rotation % 4][i] == 1:
+                positions.append((shape.x + x - 2, shape.y + y - 4))
+
+    # for i, pos in enumerate(positions):
+    #    positions[i] = (pos[0] - 2, pos[1] - 4)
 
     return positions
 
@@ -171,6 +195,9 @@ def valid_space(shape, grid):
         if pos not in accepted_pos:
             if pos[1] > -1:
                 return False
+            if pos[0] < 0 or pos[0] > 9:
+                return False
+
     return True
 
 
@@ -189,7 +216,7 @@ def get_shape():
 
 def draw_text_middle(surface, text, size, color):
     font = pygame.font.SysFont("comicsans", size, bold=True)
-    label = font.render(text, 1, color)
+    label = font.render(text, True, color)
 
     surface.blit(label, (
     top_left_x + play_width / 2 - (label.get_width() / 2), top_left_y + play_height / 2 - label.get_height() / 2))
@@ -208,6 +235,7 @@ def draw_grid(surface, grid):
 
 def clear_rows(grid, locked):
     inc = 0
+    ind = -1
     for i in range(len(grid) - 1, -1, -1):
         row = grid[i]
         if (0, 0, 0) not in row:
@@ -247,14 +275,11 @@ def draw_next_shape(shape, surface):
 
     sx = top_left_x + play_width + 50
     sy = top_left_y + play_height / 2 - 100
-    format = shape.shape[shape.rotation % len(shape.shape)]
 
-    for i, line in enumerate(format):
-        row = list(line)
-        for j, column in enumerate(row):
-            if column == '0':
-                pygame.draw.rect(surface, shape.color,
-                                 (sx + j * block_size, sy + i * block_size, block_size, block_size), 0)
+    for i in range(4):
+        for j in range(4):
+            if shape.shape[0][i * 4 + j] == 1:
+                pygame.draw.rect(surface, shape.color, (sx + j * block_size, sy + i * block_size, block_size, block_size), 0)
 
     surface.blit(label, (sx + 10, sy - 30))
 
@@ -287,8 +312,107 @@ def draw_window(surface, grid, score=0, last_score=0):
     draw_grid(surface, grid)
     # pygame.display.update()
 
+def get_input(grid,current_piece, next_piece):
+    _input = []
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            if grid[i][j] == (0, 0, 0,):
+                _input.append(0)
+            else:
+                _input.append(1)
 
-def main(win):  # *
+    for val in current_piece.shape[0]:
+        _input.append(val)
+
+    for val in next_piece.shape[0]:
+        _input.append(val)
+
+    return _input
+
+
+def get_output(net, grid, current_piece, next_piece):
+    _input = get_input(grid, current_piece, next_piece)
+    _output = net.activate(_input)
+
+    #wersja dla 2 wejść, gdzie pierwsza wartość oznacza kolumnę (0.0-1.0 -> 0-9)
+    #                          druga wartość oznacza rotację (0.0-1.0 -> 0-3)
+    rotation = int(_output[1] * 4)
+    if rotation == 4:
+        rotation -= 1
+    position = int(_output[0] * 10)
+
+    return position, rotation
+
+    # wersja dla 40 wyjść, gdzie każdy output oznacza inną kombinację kolumny i rotacji dla danego tetrimino
+    #best_index = _output.index(max(_output))
+
+    #return best_index % 10, best_index // 10
+
+def calculate_fitness(score, level, lines, locked):
+    # obliczanie fitnesu
+    cleared = level * 10 + lines
+    fitness = 0
+    if cleared > 0:
+        fitness += score / cleared
+
+        # bonus za każdą linię
+        fitness += 10 * cleared / score
+
+
+    holes = 0.05 # kara za dziury
+    highest_block_y = 0 # jak wysoko jesteśmy zbudowani
+    hole_depth = [0] * 10 # głębokość nierówności
+    for y in range(20):
+        y = 19 - y #skanujemy od dołu
+        found_block = False
+        block_length = 0
+        for x in range(10): #skanujemy od lewej strony
+            #znajdowanie dziur w ułożonym bloku
+            if (x,y) not in locked:
+                if (x,y-1) in locked:
+                    fitness -= holes
+                block_length = 0
+                # sprawdzanie nierówności:
+                hole_depth[x] += 1
+            else:
+                #fitness -= 0.01 * hole_depth[x]
+                hole_depth[x] = 0
+                block_length += 1
+                fitness += 0.01/(y+1) * block_length
+                found_block = True
+        if found_block:
+            highest_block_y += 1
+        else:
+            hole_depth = [x + highest_block_y - 20 for x in hole_depth]
+            break
+    #chcemy mieć wysokość do 4
+    if highest_block_y <= 4:
+        fitness += 0.5 * highest_block_y
+    else:
+        fitness -= 3 * (highest_block_y - 4)
+    # chcemy płaską powierzchnię (nie więcej niż dwa głębokości)
+    for depth in hole_depth:
+        if depth > 2:
+            fitness -= 0.05 * depth
+        else:
+            fitness -= 0.01
+
+    return fitness
+
+
+def evaluate_genome(genomes, config):
+    # pętla po wszystkich osobnikach w naszej populacji
+    for genome_id, genome in genomes:
+        win = pygame.display.set_mode((s_width, s_height))
+        pygame.display.set_caption('Tetris')
+        genome.fitness = 0
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        main(win, net, genome)
+        pygame.display.quit()
+
+
+def main(win, net = None, genome = None):  # *
+    #zaczyna się gra
     locked_positions = {}
     grid = create_grid(locked_positions)
 
@@ -298,18 +422,26 @@ def main(win):  # *
     next_piece = get_shape()
     clock = pygame.time.Clock()
     fall_time = 0
-    fall_speed = 0.27
+    fall_speed = 0.02 #0.02
     score = 0
     lines = 0
+    level = 0
+    use_nn = True
+
+    position_difference = 0 # różnica między pozycją według AI a rzeczywistą pozycją
+    rotation_difference = 0 # różnica między rotacją obiektu według AI a rzeczywistą rotacją
 
     while run:
+        #print(clock.get_rawtime())
         grid = create_grid(locked_positions)
         fall_time += clock.get_rawtime()
         clock.tick()
 
         if (lines + 1) % 10 == 0:
+            lines = 0
+            level += 1
             if fall_speed > 0.12:
-                fall_speed -= 0.005
+                fall_speed -= 0.05
 
         if fall_time / 1000 > fall_speed:
             fall_time = 0
@@ -318,28 +450,65 @@ def main(win):  # *
                 current_piece.y -= 1
                 change_piece = True
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.display.quit()
+        if(net == None):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.display.quit()
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    current_piece.x -= 1
-                    if not (valid_space(current_piece, grid)):
-                        current_piece.x += 1
-                if event.key == pygame.K_RIGHT:
-                    current_piece.x += 1
-                    if not (valid_space(current_piece, grid)):
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
                         current_piece.x -= 1
-                if event.key == pygame.K_DOWN:
-                    while valid_space(current_piece, grid):
-                        current_piece.y += 1
-                    current_piece.y -=1
-                if event.key == pygame.K_UP:
-                    current_piece.rotation += 1
-                    if not (valid_space(current_piece, grid)):
-                        current_piece.rotation -= 1
+                        if not (valid_space(current_piece, grid)):
+                            current_piece.x += 1
+                    if event.key == pygame.K_RIGHT:
+                        current_piece.x += 1
+                        if not (valid_space(current_piece, grid)):
+                            current_piece.x -= 1
+                    if event.key == pygame.K_DOWN:
+                        while valid_space(current_piece, grid):
+                            current_piece.y += 1
+                        current_piece.y -=1
+                    if event.key == pygame.K_UP:
+                        current_piece.rotation += 1
+                        if not (valid_space(current_piece, grid)):
+                            current_piece.rotation -= 1
+        else:
+            if (use_nn):
+                predict_position, predict_rotation = get_output(net,grid, current_piece, next_piece)
+                position_difference = predict_position - current_piece.x
+
+                if predict_rotation == 4:
+                    predict_rotation -= 1
+                rotation_difference = abs(predict_rotation - current_piece.rotation % 4)
+                use_nn = False
+                #print(predict_position, predict_rotation)
+
+            #prin(output[0], output[1])
+
+            # obracamy tetrimino
+            if rotation_difference != 0:
+                current_piece.rotation += 1
+                rotation_difference -= 1
+                if not (valid_space(current_piece, grid)):
+                    current_piece.rotation -= 1
+                    rotation_difference =0
+
+            #przesuwamy tetrimino
+            if abs(position_difference) != 0:
+                delta = int(1 * numpy.sign(position_difference))
+                current_piece.x += delta
+                position_difference -= delta
+                if not (valid_space(current_piece, grid)):
+                    current_piece.x -= delta
+                    position_difference += delta
+                    position_difference = 0
+            #print(position_difference, current_piece.x)
+
+            if abs(position_difference) == 0 and rotation_difference == 0:
+                while valid_space(current_piece, grid):
+                    current_piece.y += 1
+                current_piece.y -= 1
 
         shape_pos = convert_shape_format(current_piece)
 
@@ -354,24 +523,66 @@ def main(win):  # *
                 locked_positions[p] = current_piece.color
             current_piece = next_piece
             next_piece = get_shape()
+            use_nn = True
             change_piece = False
             cleared_lines = clear_rows(grid, locked_positions)
-            score += calculate_score(cleared_lines, 0)
+            score += calculate_score(cleared_lines, level)
             lines += cleared_lines
+            #print(score)
+        if(win != None):
+            draw_window(win, grid, score)
+            draw_next_shape(next_piece, win)
+            pygame.display.update()
 
-        draw_window(win, grid, score)
-        draw_next_shape(next_piece, win)
-        pygame.display.update()
+        # przeliczanie nowego dopasowania
+        if(genome != None):
+            genome.fitness = calculate_fitness(score, level, lines, locked_positions)
 
         if check_lost(locked_positions):
-            draw_text_middle(win, "YOU LOST!", 80, (255, 255, 255))
-            pygame.display.update()
-            pygame.time.delay(1500)
+            if(win != None):
+                draw_text_middle(win, "YOU LOST!", 80, (255, 255, 255))
+                pygame.display.update()
+            #pygame.time.delay(1500)
+            if(genome != None):
+                genome.fitness -= 20
             run = False
 
-    return score
+        if genome != None and (score > 5000 or level * 10 + lines > 50):
+            run = False
+        #print(shapes.index(current_piece.shape), current_piece.x,current_piece.y, current_piece.rotation)
+    #print(score, genome.fitness)
 
 
-win = pygame.display.set_mode((s_width, s_height))
-pygame.display.set_caption('Tetris')
-main(win)
+
+#ustawienie pliku konfiguracyjnego
+config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                     neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                     'config-feedforward')
+
+# stworzenie populacji początkowej
+p = neat.Population(config)
+p.add_reporter(neat.StdOutReporter(False))
+
+# ustawienie równoległego obliczania ??
+# neat.parallel.ParallelEvaluator(4,evaluate_genome)
+
+# wykonanie ewolucji
+winner = p.run(evaluate_genome, 50)
+
+#win = pygame.display.set_mode((s_width, s_height))
+#pygame.display.set_caption('Tetris')
+#main(win)
+
+# orzymanie "najlepszego" osobnika
+winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+
+with open("winner.pkl", "wb") as f:
+    pickle.dump(winner, f)
+    f.close()
+
+while(True):
+    win = pygame.display.set_mode((s_width, s_height))
+    pygame.display.set_caption('Tetris')
+    main(win, winner_net)
+    pygame.display.quit()
+
